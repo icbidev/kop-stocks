@@ -13,10 +13,13 @@ This system allows users to:
 
 ## 🛠️ Technologies Used
 
-- PHP (Laravel)
-- MySQL
-- HTML/CSS/JavaScript (with Bootstrap or Tailwind)
-- Git
+- **V**ue.js 3 (Frontend)
+- **I**nertia.js (SPA routing)
+- **L**aravel 11 (Backend API)
+- **T**ailwind CSS (Styling)
+- Vite (Build tool)
+- MySQL (Database)
+- Git for version control
 
 ---
 
@@ -42,13 +45,15 @@ git clone git@github.com:yourusername/kop-stocks.git
 cd kop-stocks
 ```
 
-### ✅ Step 2: Install dependencies
+### ✅ Step 2: Install dependencies (VILT-specific)
 
 ```bash
 composer install
 npm install
-npm run build # or `npm run prod` if you use Vite
+npm run build
 ```
+
+> Since you're using Vite (default in Laravel 11), `npm run build` will compile your Vue components and Tailwind CSS.
 
 ### ✅ Step 3: Set environment variables
 
@@ -71,6 +76,8 @@ DB_PORT=3306
 DB_DATABASE=your_database
 DB_USERNAME=your_user
 DB_PASSWORD=your_password
+
+VITE_APP_NAME="Stock Management"
 ```
 
 ### ✅ Step 4: Generate application key
@@ -163,5 +170,5 @@ sudo certbot --nginx -d yourdomain.com
 
 ## 📄 License
 
-MIT License © 2025 ICBI DEVev
+MIT License © 2025 ICBI DEV
 
