@@ -135,7 +135,7 @@ watch(newSupplier, (value) => {
 
 
 <template>
-  <Head title="Manage Suppliers" />
+  <Head title="Suppliers" />
   <AppLayout>
 
 

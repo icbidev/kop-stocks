@@ -256,7 +256,7 @@ const filteredCategories = computed(() => {
     class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
     @click="showModal2 = true"
   >
-    + Create
+    + Add
   </button>
     </div>
         </div>

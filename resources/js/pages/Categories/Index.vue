@@ -87,7 +87,7 @@ const destroy = (id) => {
       <tbody>
         <tr v-for="category in categories" :key="category.id" class="bg-white even:bg-gray-50">
           <td class="border px-3 py-2">{{ category.name }}</td>
-          <td class="border px-3 py-2 space-x-2">
+          <td class="border px-3 py-2 space-x-2 flex justify-center">
             <button @click="openModal(category)" class="px-2 py-1 bg-blue-500 text-white rounded">Edit</button>
             <button @click="destroy(category.id)" class="px-2 py-1 bg-red-600 text-white rounded">Delete</button>
           </td>

@@ -69,7 +69,7 @@ const sortedProducts = computed(() => {
 
 
 <template>
-  <Head title="Manage Products" />
+  <Head title="Stocks" />
   <AppLayout>
     <div class="p-4 space-y-6">
       <h1 class="text-2xl font-bold">Stocks</h1>

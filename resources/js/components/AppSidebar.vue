@@ -26,7 +26,7 @@ const mainNavItems: NavItem[] = [
     },
 
             {
-        title: 'Supplier',
+        title: 'Suppliers',
         href: '/suppliers',
         icon: PackageSearch,
     },
