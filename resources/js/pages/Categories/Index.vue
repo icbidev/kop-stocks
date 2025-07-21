@@ -6,11 +6,23 @@ import AppLayout from '@/layouts/AppLayout.vue';
 const categories = ref(usePage().props.categories)
 const showModal = ref(false)
 const editing = ref(null)
-
+const page = usePage();
+const user = page.props.auth.user;
 const form = useForm({
   name: ''
 })
-
+function cleanUrl(...segments) {
+  const result = [];
+  for (let segment of segments) {
+    if (typeof segment === 'string') {
+      segment = segment.replace(/^\/+|\/+$/g, ''); // trim slashes
+      if (result[result.length - 1] !== segment) {
+        result.push(segment);
+      }
+    }
+  }
+  return '/' + result.join('/');
+}
 const openModal = (category = null) => {
   editing.value = category
   form.name = category?.name || ''
@@ -26,7 +38,8 @@ const closeModal = () => {
 const submit = () => {
   if (editing.value) {
     // UPDATE category
-    form.put(`/categories/${editing.value.id}`, {
+    const urlUpdate = cleanUrl(user.name, 'categories', editing.value.id);;
+    form.put(urlUpdate+`/${editing.value.id}`, {
       onSuccess: () => {
         // Update the item in the list
         const index = categories.value.findIndex(c => c.id === editing.value.id)
@@ -38,7 +51,8 @@ const submit = () => {
     })
   } else {
     // CREATE category
-    form.post('/categories', {
+        const urlUpdate = cleanUrl(user.name, 'categories');
+    form.post(urlUpdate, {
       preserveScroll: true,
       onSuccess: (response) => {
         // If the server sends back the new category
@@ -57,7 +71,8 @@ const submit = () => {
 
 const destroy = (id) => {
   if (confirm('Are you sure?')) {
-    router.delete(`/categories/${id}`, {
+            const urlUpdate = cleanUrl(user.name, 'categories');
+    router.delete(urlUpdate+`/${id}`, {
       onSuccess: () => {
         categories.value = categories.value.filter(c => c.id !== id)
       }
@@ -80,8 +95,8 @@ const destroy = (id) => {
     <table class="w-full table-auto border rounded shadow text-sm">
       <thead class="bg-gray-100">
         <tr>
-          <th class="border px-3 py-2">Name</th>
-          <th class="border px-3 py-2">Actions</th>
+          <th class="border px-3 py-2 text-bold">Name</th>
+          <th class="border px-3 py-2 text-bold">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -110,9 +125,9 @@ const destroy = (id) => {
         />
         <p v-if="form.errors.name" class="text-red-500 text-sm mt-1">{{ form.errors.name }}</p>
 
-        <div class="flex justify-end mt-4 space-x-2">
-          <button @click="closeModal" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-          <button @click="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
+        <div class="flex justify-between mt-4 space-x-2">
+          <button @click="closeModal" class="btn">Cancel</button>
+          <button @click="submit" class="px-4 py-2 bg-green-600 text-white rounded">
             {{ editing ? 'Update' : 'Create' }}
           </button>
         </div>

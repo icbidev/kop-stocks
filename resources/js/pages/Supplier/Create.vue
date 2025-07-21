@@ -13,8 +13,8 @@
       />
       <p v-if="form.errors.name" class="text-red-600 text-sm mt-1">{{ form.errors.name }}</p>
       <!-- Buttons -->
-      <div class="flex justify-end mt-4 space-x-2">
-        <button @click="emit('close')" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+      <div class="flex justify-between mt-4 space-x-2">
+        <button @click="emit('close')" class="btn">Cancel</button>
         <button @click="handleCreate" class="px-4 py-2 bg-green-600 text-white rounded">Create</button>
       </div>
     </div>
@@ -22,10 +22,25 @@
 </template>
 
 <script setup lang="ts">
-import { useForm,router } from '@inertiajs/vue3'
+import { useForm,router,usePage } from '@inertiajs/vue3'
 import { defineEmits, defineProps,ref } from 'vue'
 import { useToast } from 'vue-toastification'
+const page = usePage();
+const user = page.props.auth.user;
+function cleanUrl(...segments) {
+  const result = [];
+  for (let segment of segments) {
+    if (typeof segment === 'string') {
+      segment = segment.replace(/^\/+|\/+$/g, ''); // trim slashes
+      if (result[result.length - 1] !== segment) {
+        result.push(segment);
+      }
+    }
+  }
+  return '/' + result.join('/');
+}
 
+const url = cleanUrl(user.name, 'suppliers');
 const toast = useToast()
 const props = defineProps({
   show: Boolean
@@ -38,10 +53,10 @@ const form = useForm({
 
 
 const handleCreate = () => {
-  router.post('/suppliers', form, {
+  router.post(url, form, {
     onSuccess: (page) => {
       const newSupplier = page.props.supplier ?? {
-        id: Date.now(),
+        id: form.id,
         name: form.name,
         updated_at: new Date().toISOString()
       }

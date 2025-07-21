@@ -5,11 +5,12 @@ import { ref } from 'vue';
 import type { Product } from '@/types';
 const page = usePage();
 const products = ref<Product[]>(page.props.products);
+
 const suppliers = ref<Supplier[]>(page.props.supplier);
 const categories = ref<Category[]>(page.props.category);
 const weight_units = ref<WeightUnit[]>(page.props.weight_units);
 import { useToast } from 'vue-toastification'
-
+const user = page.props.auth.user;
 const toast = useToast()
  function humanDate(date) {
     const parsedDate = new Date(date);
@@ -33,8 +34,22 @@ const toast = useToast()
   }
 const updateProduct = (product: Product, event?: Event) => {
   event?.preventDefault();
+function cleanUrl(...segments) {
+  const result = [];
+  for (let segment of segments) {
+    if (typeof segment === 'string') {
+      segment = segment.replace(/^\/+|\/+$/g, ''); // trim slashes
+      if (result[result.length - 1] !== segment) {
+        result.push(segment);
+      }
+    }
+  }
+  return '/' + result.join('/');
+}
 
-router.put(`/inventory/${product.id}`, {
+const url = cleanUrl(user.name, user.name, 'inventory', product.id);
+
+router.put(url+`/${product.id}`, {
   id: product.id,
   name: product.name,
 supplier_ids: product.supplier_ids, // must be an array
@@ -82,11 +97,8 @@ products.value = products.value.map(product => ({
         <tr>
           <th class="p-2 border w-1/12">ID</th>
           <th class="p-2 border w-3/12">Name</th>
-          <th class="p-2 border w-3/12">Supplier</th>
-          <th class="p-2 border w-2/12">Minimum Balance</th>
-          <th class="p-2 border w-2/12">Standard Order</th>
           <th class="p-2 border w-2/12">Current Balance</th>
-          <th class="p-2 border w-2/12">Weight Unit</th>
+
           <th class="p-2 border w-2/12">Action</th>
           <th class="p-2 border w-2/12">Last Updated</th>
         </tr>
@@ -101,52 +113,11 @@ products.value = products.value.map(product => ({
           <td class="border px-2 py-1">
                     <div class="flex justify-center">
 
-            <input
-              v-model="product.name"
-              type="text"
-  :class="[
-    'w-full border rounded px-1 py-0.5',
-    product.errors?.name ? 'border-red-500' : 'border-gray-300'
-  ]"
-            />
+            <p class="w-full border rounded px-1 py-0.5"
+            >{{ product.name }}</p>
                                      </div>
           </td>
 
-<td class="border px-2 py-1">
-<div class="mb-4 border p-3 rounded shadow">
-  <div class="flex justify-center items-center">
-    <button @click="product.showSuppliers = !product.showSuppliers" class="text-blue-500 text-sm underline">
-      {{ product.showSuppliers ? 'Hide Suppliers' : 'Select Suppliers' }}
-    </button>
-  </div>
-
-  <div v-if="product.showSuppliers" class="ml-4 mt-2 max-h-60 overflow-y-auto border p-2 rounded">
-    <label v-for="supplier in suppliers" :key="supplier.id" class="block">
-      <input
-        type="checkbox"
-        :value="supplier.id"
-        v-model="product.supplier_ids"
-      />
-      {{ supplier.name }}
-    </label>
-  </div>
-
-
-  </div>
-</td>
-                                                  <td class="border px-2 py-1">
-          <div class="flex justify-center items-center">
-            <input
-              v-model="product.minimum_quantity "
-              type="text"
-         step="0.01"
-                      :class="[
-    'w-full border rounded px-1 py-0.5 text-right',
-    product.errors?.minimum_quantity ? 'border-red-500' : 'border-gray-300'
-  ]"
-            />
-              </div>
-          </td>
                                         <td class="border px-2 py-1">
           <div class="flex justify-center items-center">
             <input
@@ -159,41 +130,6 @@ products.value = products.value.map(product => ({
             />
               </div>
           </td>
-                    <td class="border px-2 py-1">
-          <div class="flex justify-center items-center">
-            <input
-              v-model="product.quantity"
-              type="number"
-                                    :class="[
-    'w-full border rounded px-1 py-0.5 text-right',
-    product.errors?.quantity ? 'border-red-500' : 'border-gray-300'
-  ]"
-            />
-              <p class="p-2">{{ product.weight_unit.quantity }}</p>
-              </div>
-          </td>
-
-<td class="border px-2 py-1">
-  <div class="flex justify-center items-center">
-    <select
-      v-model="product.weight_unit_id"
-                                    :class="[
-    'w-full border rounded px-1 py-0.5 text-right',
-    product.errors?.weight_unit_id ? 'border-red-500' : 'border-gray-300'
-  ]"
-    >
-      <option disabled value="">Select Unit</option>
-      <option
-        v-for="unit in weight_units"
-        :key="unit.id"
-        :value="unit.id"
-      >
-        {{ unit.name }}
-      </option>
-    </select>
-  </div>
-</td>
-
 
           <td class="border px-2 py-1 text-center">
             <button
@@ -205,6 +141,7 @@ products.value = products.value.map(product => ({
             </button>
           </td>
           <td class="border px-2 py-1">
+
             <p>{{ humanDate(product.updated_at) }}</p>
           </td>
         </tr>

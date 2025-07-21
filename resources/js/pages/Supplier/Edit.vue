@@ -17,9 +17,9 @@
 
 
       <!-- Buttons -->
-      <div class="flex justify-end mt-4 space-x-2">
-        <button @click="emit('close')" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-        <button @click="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+      <div class="flex justify-between mt-4 space-x-2">
+        <button @click="emit('close')" class="btn">Cancel</button>
+        <button @click="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded">Update</button>
       </div>
     </div>
   </div>
@@ -30,9 +30,10 @@
 import { ref, watch,defineEmits } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { useToast } from 'vue-toastification'
-import { useForm } from '@inertiajs/vue3';
+import { useForm,usePage } from '@inertiajs/vue3';
 const toast = useToast()
-
+const page = usePage();
+const user = page.props.auth.user;
 const props = defineProps({
   show: Boolean,
   unit: Object
@@ -53,8 +54,23 @@ watch(() => props.unit, (newUnit) => {
   }
 }, { immediate: true });
 
+// Helper to clean up URL segments
+function cleanUrl(...segments) {
+  const result = [];
+  for (let segment of segments) {
+    if (typeof segment === 'string') {
+      segment = segment.replace(/^\/+|\/+$/g, ''); // trim slashes
+      if (result[result.length - 1] !== segment) {
+        result.push(segment);
+      }
+    }
+  }
+  return '/' + result.join('/');
+}
+
+const url = cleanUrl(user.name, 'suppliers',form.id);
 const submit = () => {
-form.put(`/suppliers/${form.id}`, {
+form.put(url+`/${form.id}`, {
   onSuccess: () => {
   emit('updated', { id: form.id, name: form.name, updated_at: new Date().toISOString() });
   emit('close');

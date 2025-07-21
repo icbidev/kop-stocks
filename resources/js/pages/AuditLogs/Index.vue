@@ -16,7 +16,7 @@ const changedBy = ref(page.props.filters?.changedBy || '')
 
 
 const applyFilters = () => {
-router.get(route('audit.logs'), {
+router.get(route('admin.audit.logs'), {
   model_type: modelType.value,
   event: eventType.value,
   date: searchDate.value,
@@ -54,6 +54,7 @@ router.get(route('audit.logs'), {
     <label class="block text-sm text-gray-700 mb-1">Event</label>
     <select v-model="eventType" class="border px-2 py-1 rounded">
       <option value="">All</option>
+      <option value="sync-suppliers">Sync Suppliers</option>
       <option value="create">Created</option>
       <option value="update">Updated</option>
       <option value="delete">Deleted</option>

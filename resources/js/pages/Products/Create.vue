@@ -58,19 +58,20 @@ function cancel() {
       </div>
 
       <div class="flex justify-between items-center pt-4">
-        <button
-          type="submit"
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          :disabled="form.processing"
-        >
-          Add Product
-        </button>
+
         <button
           type="button"
           class="text-gray-600 hover:underline"
           @click="cancel"
         >
           Cancel
+        </button>
+                <button
+          type="submit"
+          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          :disabled="form.processing"
+        >
+          Create
         </button>
       </div>
     </form>

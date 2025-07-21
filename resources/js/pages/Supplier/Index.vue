@@ -10,6 +10,7 @@ const page = usePage();
 const suppliers = ref<Supplier[]>(page.props.suppliers);
 import { useToast } from 'vue-toastification'
 const showCreateModal = ref(false)
+const user = page.props.auth.user;
 const handleUpdatedSupplier = (updatedSupplier) => {
   const index = suppliers.value.findIndex(s => s.id === updatedSupplier.id);
   if (index !== -1) {
@@ -94,8 +95,9 @@ const submitEdit = () => {
 };
 
 const deleteWeightUnit = (id: number) => {
+  const url = cleanUrl(user.name, 'suppliers', id);
   if (confirm('Are you sure you want to delete this supplier?')) {
-    router.delete(`/suppliers/${id}`, {
+    router.delete(url+`/${id}`, {
       onSuccess: () => {
         toast.success('Supplier deleted successfully.');
         // ✅ Remove from local list
@@ -117,6 +119,20 @@ const addSupplier = (newSupplier) => {
 
   suppliers.value.unshift(supplierPartial); // ✅ Add to the top of the list
 };
+
+function cleanUrl(...segments) {
+  const result = [];
+  for (let segment of segments) {
+    if (typeof segment === 'string') {
+      segment = segment.replace(/^\/+|\/+$/g, ''); // trim slashes
+      if (result[result.length - 1] !== segment) {
+        result.push(segment);
+      }
+    }
+  }
+  return '/' + result.join('/');
+}
+
 
 
 watch(newSupplier, (value) => {

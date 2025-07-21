@@ -3,11 +3,13 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head,useForm,usePage  } from '@inertiajs/vue3';
 import { ref,onMounted,computed  } from 'vue';
+
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 import AddProduct from '@/components/Products/Create.vue';
 const page = usePage();
 import Edit from '@/pages/Products/Edit.vue';
 import { useToast } from 'vue-toastification'
+const user = usePage().props.auth.user
 
 const toast = useToast()
 const weight_units = ref<WeightUnits[]>(page.props.weight_units);
@@ -17,7 +19,21 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/products',
     },
 ];
+function cleanUrl(...segments) {
+  const result = [];
+  for (let segment of segments) {
+    if (typeof segment === 'string') {
+      segment = segment.replace(/^\/+|\/+$/g, ''); // trim slashes
+      if (result[result.length - 1] !== segment) {
+        result.push(segment);
+      }
+    }
+  }
+  return '/' + result.join('/');
+}
 
+const urlCreate = cleanUrl(user.name, 'products/create-product');
+const urlCreateCategory = cleanUrl(user.name,'/products/create-category');
 
 const props = defineProps<{
   products: Array<{ id: number; name: string; category?: any; quantity: number,minimum_quantity: number,weight_unit_id: Array }>;
@@ -31,18 +47,23 @@ const showAddModal = ref(true)
 const searchCategory = ref('') // User input for filtering
 const selectedCategory = ref('') // The actual selected category
     const categories = ref([])
+const fetchCategories = async () => {
+  try {
+    const res = await fetch(`http://192.168.2.185:8000/${user.name}/api/category`)
+    categories.value = await res.json()
 
-onMounted(async () => {
-  const res = await fetch('http://192.168.2.185:8000/api/category')
-  categories.value = await res.json()
-})
-
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+  }
+}
+onMounted(fetchCategories)
 const categoryForm = useForm({
   name: '',
 })
 const productForm = useForm({
   name: '',
    category_id: null, // should store the category ID
+   supplier_ids: [], // should store the category ID
    weight_unit_id : "",
    quantity : 0,
    minimum_quantity : 0
@@ -50,7 +71,7 @@ const productForm = useForm({
 })
 
 function submitCategory() {
-  categoryForm.post('/products/create-category', {
+  categoryForm.post(urlCreateCategory, {
     onSuccess: () => {
       toast.success('Added category successfully!')
       categoryForm.reset()
@@ -61,7 +82,8 @@ function submitCategory() {
 }
 
 function submitProduct() {
-  productForm.post('/products/create-product', {
+  
+  productForm.post(urlCreate, {
     onSuccess: () => {
       productForm.reset()
       showModal1.value = false,
@@ -205,18 +227,18 @@ const filteredCategories = computed(() => {
 
       <div class="flex justify-between items-center pt-4">
         <button
-          type="submit"
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          :disabled="productForm.processing"
-        >
-          Add Product
-        </button>
-        <button
           type="button"
           class="text-gray-600 hover:underline"
           @click="showModal2 = false"
         >
           Cancel
+        </button>
+                <button
+          type="submit"
+          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          :disabled="productForm.processing"
+        >
+          Create
         </button>
       </div>
     </form>
@@ -265,7 +287,11 @@ const filteredCategories = computed(() => {
             <tr class="bg-gray-100 text-black">
               <th class="text-left p-2">Category</th>
               <th class="text-left p-2">Name</th>
-              <th class="text-left p-2">Actions</th>
+              <th class="text-left p-2">Suppliers</th>
+              <th class="text-left p-2">Standard Order</th>
+              <th class="text-left p-2">Minimum Balance</th>
+              <th class="text-left p-2">Weight Unit</th>
+              <th class="text-left p-2">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -275,13 +301,23 @@ const filteredCategories = computed(() => {
               class="border-t hover:bg-gray-50"
             >
                           <td class="p-2">{{ product.category?.name ?? 'Uncategorized' }}</td>
+
               <td class="p-2">{{ product.name }}</td>
+                                        <td  class="p-2 ">
+                        <div v-for="productsuppliers in product.suppliers"     class="inline-block bg-blue-100 text-blue-800 rounded px-2 py-0.5 mr-1 mb-1">
+                              {{ productsuppliers.name }}
+
+                          </div>
+                          </td>
+<td class="p-2">{{ product.standard_order}}</td>
+<td class="p-2">{{ product.minimum_quantity}}</td>
+<td class="p-2">{{ product.weight_unit.name}}</td>
               <td class="p-2">
               <Edit 
-              
-  :product="product"
-  :categories="categories"
-  ></Edit>
+                      
+          :product="product"
+          :categories="categories"
+          ></Edit>
 
               </td>
             </tr>

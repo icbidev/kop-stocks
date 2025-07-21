@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head,usePage } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Chart, registerables } from 'chart.js'
 Chart.register(...registerables)
-
+const page = usePage()
+const apiUser = page.props.auth.user;
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Dashboard', href: '/dashboard' },
 ];
@@ -14,9 +15,9 @@ const totalProducts = ref(0)
 const lowStockCount = ref(0)
 const outOfStockCount = ref(0)
 const mostStockedProduct = ref({ name: '', quantity: 0 })
-
+console.log(apiUser);
 onMounted(async () => {
-  const productsRes = await fetch('http://192.168.2.185:8000/api/products')
+  const productsRes = await fetch(`http://192.168.2.185:8000/${apiUser.name}/api/products`);
   const products = await productsRes.json()
 
   totalProducts.value = products.length
