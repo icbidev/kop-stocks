@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/composables/useInitials';
+import { usePage } from '@inertiajs/vue3';
 import type { User } from '@/types';
 import { computed } from 'vue';
-
+const page = usePage<{ auth: { user: User } }>();
+const user = page.props.auth.authUser;
 interface Props {
     user: User;
     showEmail?: boolean;

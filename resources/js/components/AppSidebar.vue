@@ -4,54 +4,62 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, EggFried, ChartNoAxesCombined, Truck, Box, Book, Weight, ChartBarStacked,PackageSearch,FileStack } from 'lucide-vue-next';
+import { Link,usePage  } from '@inertiajs/vue3';
+import { BookOpen, Folder, LayoutGrid, EggFried, ChartNoAxesCombined, Truck, Box, Book, Weight, ChartBarStacked,PackageSearch,FileStack,Users,Star } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+const page = usePage()
+const user = page.props.auth.user
+const allowedRoutes =  page.props.auth.allowedRoutes
+// Filter nav items based on route permission
+const iconMap = {
+  'dashboard': LayoutGrid,
+  'users.index': Users,
+  'roles.index': Star,
+  'products': EggFried,
+  'categories.index': ChartBarStacked,
+  'suppliers.index': PackageSearch,
+  'inventory.index': Box,
+  'low-stocks.index': Book,
+  'audit.logs': FileStack,
+}
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Products',
-        href: '/products',
-        icon: EggFried,
-    },
-        {
-        title: 'Categories',
-        href: '/categories',
-        icon: ChartBarStacked,
-    },
+const titleMap = {
+  'dashboard': 'Dashboard',
+  'users.index': 'Users',
+  'roles.index': 'Roles',
+  'products': 'Products',
+  'categories.index': 'Categories',
+  'suppliers.index': 'Suppliers',
+  'inventory.index': 'Inventory',
+  'low-stocks.index': 'Stocks',
+  'audit.logs': 'Audit Logs',
+}
 
-            {
-        title: 'Suppliers',
-        href: '/suppliers',
-        icon: PackageSearch,
-    },
+const mainNavItems = []
+const footerNavItems = []
 
+allowedRoutes.forEach(item => {
+  const fullRoute = item
 
-                {
-        title: 'Inventory',
-        href: '/inventory',
-        icon: Box,
-    },
-        {
-        title: 'Stocks',
-        href: '/low-stocks',
-        icon: Book,
-    },
+  if (!fullRoute || typeof fullRoute !== 'string') return
 
-];
+  const [role, ...rest] = fullRoute.split('.')
+  const routeKey = rest.join('.')
 
-const footerNavItems: NavItem[] = [
-            {
-        title: 'Audit Logs',
-        href: '/audit-logs',
-        icon: FileStack,
-    },
-];
+  if (role !== user.name || !iconMap[routeKey]) return
+
+  const navItem = {
+    title: titleMap[routeKey],
+    href: route(fullRoute),
+    icon: iconMap[routeKey],
+  }
+    console.log(routeKey);
+  if (routeKey === 'audit.logs') {
+    footerNavItems.push(navItem)
+  } else {
+    mainNavItems.push(navItem)
+  }
+})
 </script>
 
 <template>
@@ -60,7 +68,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
+<Link :href="route(allowedRoutes.includes(`${user.name}.dashboard`) ? `${user.name}.dashboard` : 'cashier.inventory.index')">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
