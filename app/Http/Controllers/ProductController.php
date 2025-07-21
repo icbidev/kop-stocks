@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Supplier;
 use App\Http\Requests\StoreMovementRequest;
 use App\Models\Movement;
 use App\Models\WeightUnits;
@@ -14,9 +15,17 @@ class ProductController extends Controller
 {
     public function index()
     {
+        $products = Product::with(['movements', 'category', 'suppliers', 'weight_unit'])
+        ->get()
+        ->map(function ($product) {
+            $product->supplier_ids = $product->suppliers->pluck('id');
+            return $product;
+        });
         return Inertia::render('Products/Index', [
-            'products' => Product::with(['movements', 'category', 'weight_unit'])->get(),
-            'weight_units' => WeightUnits::all()
+            'products' => $products,
+            'category' => Category::with('products')->get(),
+            'weight_units' => WeightUnits::all(),
+            'supplier' => Supplier::all(),
         ]);
     }
 
@@ -45,8 +54,10 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer',
+            'supplier_ids' => 'array',
+            'supplier_ids.*' => 'exists:suppliers,id',
             'minimum_quantity' => 'required|numeric',
-            'weight_unit_id' => 'required|string',
+            'weight_unit_id' => 'required|string|exists:weight_units_id',
             'category_id' => 'required|integer|exists:categories,id',
         ]);
         $name = $request->input('weight_unit_id'); // e.g., 'kg'
@@ -66,7 +77,7 @@ class ProductController extends Controller
             'minimum_quantity' => $validated['minimum_quantity'],
         ]);
     
-    
+
         return back()->with('success', 'Product created successfully.');
     }
 
@@ -82,14 +93,26 @@ class ProductController extends Controller
 
     public function update(Request $request, string $id)
     {
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'supplier_ids' => 'array',
+            'supplier_ids.*' => 'exists:suppliers,id',
+            'standard_order' => 'nullable|numeric',
             'minimum_quantity' => 'required|numeric',
+            'weight_unit_id' => 'required|integer|exists:weight_units,id',
             'category_id' => 'required|integer|exists:categories,id',
         ]);
     
         $product = Product::findOrFail($id);
-    
+        $supplierIds = $validated['supplier_ids'] ?? [];
+
+        $existingSupplierIds = $product->suppliers()->pluck('suppliers.id')->sort()->values()->toArray();
+        $newSupplierIds = collect($supplierIds)->sort()->values()->toArray();
+        
+        if ($existingSupplierIds !== $newSupplierIds) {
+            $product->syncSuppliersWithAudit($newSupplierIds);
+        }
         $product->update($validated);
     
         return back()->with('success', 'Product updated successfully.');
