@@ -1,27 +1,10 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\NewPasswordController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\Auth\ApiController;
-use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\LowStocksController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\WeightUnitsController;
-use App\Http\Controllers\ProductMovementController;
-use App\Http\Controllers\DeliveryController;
-use App\Http\Controllers\ReportController;
+
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuditLogController;
 
 
+/*
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
@@ -103,3 +86,4 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/products', [ApiController::class, 'apiProduct'])->middleware(['auth'])->name('apiProduct.get');
     Route::get('/api/delivery', [ApiController::class, 'apiDelivery'])->middleware(['auth'])->name('apiDelivery.get');
 });
+ */
