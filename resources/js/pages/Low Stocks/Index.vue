@@ -35,8 +35,8 @@ const updateProduct = (product: Product) => {
     }
   });
 };
-
-// Filter and sort products
+let categoryDisplayed = ref(false); // Control flag for showing category 
+// Sort products by category and group them in the sorted list
 const sortedProducts = computed(() => {
   let filtered = [...products.value];
 
@@ -56,13 +56,16 @@ const sortedProducts = computed(() => {
     filtered = filtered.filter(p => p.quantity == 0.00);
   }
 
-  // Sort by category name
-  return filtered.sort((a, b) => {
+  // Sort by category name (A to Z)
+  filtered.sort((a, b) => {
     const nameA = a.category.name.toLowerCase();
     const nameB = b.category.name.toLowerCase();
     return nameA.localeCompare(nameB);
   });
+
+  return filtered;
 });
+
 
 </script>
 
@@ -102,49 +105,61 @@ const sortedProducts = computed(() => {
 
 
       <!-- Products Table -->
-      <table class="min-w-full table-auto border rounded overflow-hidden shadow text-sm">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="p-2 border">ID</th>
-            <th class="p-2 border">Name</th>
-            <th class="p-2 border">Minimum Balance</th>
-            <th class="p-2 border">Current Balance</th>
-            <th class="p-2 border">Standard Order</th>
-          </tr>
-        </thead>
-        <tbody>
-<tr
-  v-for="product in sortedProducts"
-  :key="product.id"
-  :class="{
-    'bg-red-100': product.quantity == 0.00,
-    'bg-yellow-100': (parseFloat(product.quantity) > 0) && parseFloat(product.quantity) < parseFloat(product.minimum_quantity),
-  }"
->
-<td class="border px-2 py-1 font-bold">
-  <div class="text-xs text-gray-600">
-    <span v-for="supplier in product.suppliers" :key="supplier.id" class="inline-block bg-blue-100 text-blue-800 rounded px-2 py-0.5 mr-1 mb-1">
-      {{ supplier.name }}
-    </span>
-  </div>
-  <div>{{ product.category.name }} - #{{ product.id }}</div>
-</td>
-            <td class="border px-2 py-1 font-bold">
-              <p>{{ product.name }}</p>
-            </td>
-            <td class="border px-2 py-1 font-bold">
-              <p>{{ product.minimum_quantity }} {{ product.weight_unit.name }}</p>
-            </td>
-            <td class="border px-2 py-1 text-red-500 font-bold">
-              <p>{{ product.quantity }}</p>
-            </td>
-            <td class="border px-2 py-1 text-yellow-500 font-bold">
+<!-- Products Table -->
+<table class="min-w-full table-auto border rounded overflow-hidden shadow text-sm">
+  <thead class="bg-gray-100">
+    <tr>
+      <th class="p-2 border">Suppliers</th>
+      <th class="p-2 border">Item Name</th>
+      <th class="p-2 border">Minimum Balance</th>
+      <th class="p-2 border">Current Balance</th>
+      <th class="p-2 border">Standard Order</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Loop through products and group by category -->
+    <tr
+      v-for="(product, index) in sortedProducts"
+      :key="product.id"
+      :class="{
+        'bg-red-100': parseFloat(product.quantity) === 0.00,
+        'bg-yellow-100': parseFloat(product.quantity) > 0 && parseFloat(product.quantity) < parseFloat(product.minimum_quantity),
+      }"
+    >
 
-              <p>{{ (product.standard_order - product.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    </tr>
+    <tr
+      v-for="product in sortedProducts"
+      :key="product.id"
+      :class="{
+        'bg-red-100': parseFloat(product.quantity) === 0.00,
+        'bg-yellow-100': parseFloat(product.quantity) > 0 && parseFloat(product.quantity) < parseFloat(product.minimum_quantity),
+      }"
+    >
+      <td class="border px-2 py-1 font-bold text-center">
+
+   <div v-for="productsupplier in product.suppliers"
+    class="inline-block bg-blue-100 text-blue-800 rounded px-2 py-0.5 mr-1 mb-1"
+  >
+  {{ productsupplier.name }}
+      </div>
+      </td>
+      <td class="border px-2 py-1 font-bold text-center">
+        <p>{{ product.name }}</p>
+      </td>
+      <td class="border px-2 py-1 font-bold text-center">
+        <p>{{ product.minimum_quantity }} {{ product.weight_unit.name }}</p>
+      </td>
+      <td class="border px-2 py-1 text-red-500 font-bold text-center">
+        <p>{{ product.quantity }}</p>
+      </td>
+      <td class="border px-2 py-1 text-yellow-500 font-bold text-center">
+        <p>{{ (parseFloat(product.standard_order) - parseFloat(product.quantity)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
     </div>
   </AppLayout>
 </template>

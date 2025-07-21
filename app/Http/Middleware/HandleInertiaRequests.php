@@ -6,7 +6,8 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
-
+use Auth;
+use DB;
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -44,12 +45,24 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => Auth::user(),
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+'auth' => fn () => [
+    'user' => Auth::user()?->role,
+    'authUser' => Auth::user(),
+    'allowedRoutes' => auth()->check()
+        ? DB::table('role_route')
+            ->join('routes', 'routes.id', '=', 'role_route.route_id')
+            ->where('role_route.role_id', auth()->user()->role_id)
+            ->pluck('routes.name')
+            ->toArray()
+        : [],
+],
+
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
