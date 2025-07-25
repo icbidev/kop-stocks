@@ -53,13 +53,32 @@ allowedRoutes.forEach(item => {
     href: route(fullRoute),
     icon: iconMap[routeKey],
   }
-    console.log(routeKey);
+
   if (routeKey === 'audit.logs') {
     footerNavItems.push(navItem)
   } else {
     mainNavItems.push(navItem)
   }
 })
+
+// Move 'inventory.index' and 'low-stocks.index' to the bottom of the mainNavItems3
+if (user.name === 'admin' || user.name === 'manager') {
+const stickyKeys = ['inventory.index', 'low-stocks.index'];
+
+const stickyItems = mainNavItems.filter(item =>
+  stickyKeys.includes(
+    Object.entries(titleMap).find(([_, title]) => title === item.title)?.[0] || ''
+  )
+);
+
+const nonStickyItems = mainNavItems.filter(item =>
+  !stickyItems.includes(item)
+);
+
+mainNavItems.length = 0;
+mainNavItems.push(...nonStickyItems, ...stickyItems);
+}
+
 </script>
 
 <template>
