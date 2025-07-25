@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Role;
+use App\Models\Route;
+use App\Models\RoleRoute;
 class RolesController extends Controller
 {
     /**
@@ -12,8 +14,11 @@ class RolesController extends Controller
      */
     public function index()
     {
+        
         return Inertia::render('Roles/Index', [
             'roles' => Role::get(),
+            'role_routes' => RoleRoute::get(),
+            'routes' => Route::get(),
         ]);
     }
 
@@ -62,6 +67,53 @@ class RolesController extends Controller
         return Inertia::render('Roles/Edit', [
             'role' => $role
         ]);
+    }
+
+    public function editRoute(Role $role)
+    {
+        $allRoutes = collect(Route::getRoutes())->map(function ($route) {
+            return [
+                'name' => $route->getName(),
+                'path' => $route->uri(),
+            ];
+        })->filter(fn($route) => $route['name']); // skip unnamed routes
+    
+        $roleRoutes = RoleRoute::where('role_id', $role->id)->get(['route_id', 'role_id'])->toArray();
+
+
+        return Inertia::render('Roles/EditRoute', [
+            'role' => $role,
+            'routes' => $allRoutes,
+            'role_routes' => $roleRoutes,
+        ]);
+    }
+    
+    
+
+    public function updateRoute(Request $request, $id)
+    {
+        $newPaths = $request->input('selectedRoutes'); // array of route_ids
+        $oldPaths = RoleRoute::where('role_id', $id)->pluck('route_id')->toArray();
+    
+        $toAdd = array_diff($newPaths, $oldPaths);
+        $toRemove = array_diff($oldPaths, $newPaths);
+    
+        // Insert new routes
+        foreach ($toAdd as $routeId) {
+            RoleRoute::create([
+                'role_id' => $id,
+                'route_id' => $routeId,
+            ]);
+        }
+    
+        // Delete removed routes
+        if (!empty($toRemove)) {
+            RoleRoute::where('role_id', $id)
+                ->whereIn('route_id', $toRemove)
+                ->delete();
+        }
+    
+        return back()->with('success', 'Routes updated successfully.');
     }
 
     /**
