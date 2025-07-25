@@ -15,6 +15,7 @@ const handleUpdatedSupplier = (updatedSupplier) => {
   const index = suppliers.value.findIndex(s => s.id === updatedSupplier.id);
   if (index !== -1) {
     suppliers.value[index].name = updatedSupplier.name;
+    suppliers.value[index].contact_number = updatedSupplier.contact_number;
     suppliers.value[index].updated_at = updatedSupplier.updated_at;
   }
   toast.success('Supplier updated successfully!');
@@ -52,6 +53,7 @@ const selectedUnit = ref({
 const updateProduct = (suppliers: Supplier) => {
   router.put(`/suppliers/${suppliers.id}`, {
     name: product.name,
+        name: product.contact_number,
   }, {
     onSuccess: () => {
       toast.success('Added quantity to '+product.name)
@@ -69,7 +71,7 @@ const openEditModalsupplier = (supplier) => {
 const editSupplier = (id: number) => {
   const supplier = suppliers.value.find(w => w.id === id);
   if (supplier) {
-    editForm.value = { id: supplier.id, name: supplier.name };
+    editForm.value = { id: supplier.id, contact_number: supplier.contact_number , name: supplier.name };
     showEditModal.value = true;
   }
 };
@@ -85,6 +87,7 @@ const submitEdit = () => {
       const index = suppliers.value.findIndex(s => s.id === editForm.value.id);
       if (index !== -1) {
         suppliers.value[index].name = editForm.value.name;
+        suppliers.value[index].contact_number = editForm.value.contact_number;
       }
       showEditModal.value = false;
     },
@@ -114,10 +117,11 @@ const addSupplier = (newSupplier) => {
   const supplierPartial = {
     id: newSupplier.id,
     name: newSupplier.name,
+        contact_number: newSupplier.contact_number,
     updated_at: humanDate(newSupplier.updated_at),
   };
 
-  suppliers.value.unshift(supplierPartial); // ✅ Add to the top of the list
+  suppliers.value.push(supplierPartial); // ✅ Add to the top of the list
 };
 
 function cleanUrl(...segments) {
@@ -136,16 +140,25 @@ function cleanUrl(...segments) {
 
 
 watch(newSupplier, (value) => {
-  if (value) {
-    suppliers.value.unshift({
-      id: value.id,
-      name: value.name,
-      updated_at: humanDate(value.updated_at),
-    });
-    toast.success('Supplier added!');
-    newSupplier.value = null; // Reset after use
-  }
+
+
+  if (!value) return;
+
+  console.log('New supplier from child:', value);
+  console.log(value.id);
+  suppliers.value.push({
+    id: value.id,
+    name: value.name,
+    contact_number: value.contact_number,
+    updated_at: humanDate(value.updated_at),
+  });
+
+  toast.success('Supplier added!');
+  newSupplier.value = null; // reset
 });
+
+
+
 
 </script>
 
@@ -164,30 +177,26 @@ watch(newSupplier, (value) => {
     </div>
 <CreateModal
   :show="showCreateModal"
-  v-model:newSupplier="newSupplier"
+  @update:newSupplier="newSupplier = $event"
   @close="showCreateModal = false"
 />
 
-      <table class="min-w-full table-auto border rounded overflow-hidden shadow text-sm">
+      <table class="min-w-full table-auto border rounded overflow-hidden shadow text-sm text-center">
         <thead class="bg-gray-100">
           <tr>
-            <th class="p-2 border">ID</th>
+
             <th class="p-2 border">Name</th>
-             <th class="p-2 border">Updated At</th>
+            <th class="p-2 border">Contact Number</th>
             <th class="p-2 border">Action</th>
           </tr>
         </thead>
         <tbody>
 <tr v-for="supplier in suppliers" :key="supplier.id" class="bg-white even:bg-gray-50">
-
-            <td class="border px-2 py-1 font-bold">
-            {{ supplier.id }}
-            </td>
             <td class="border px-2 py-1 font-bold">
             {{ supplier.name }}
             </td>
-                        <td class="border px-2 py-1 font-bold">
-            {{ humanDate(supplier.updated_at) }}
+            <td class="border px-2 py-1 font-bold">
+            {{ supplier.contact_number }}
             </td>
 <td class="border px-2 py-1 flex items-center justify-center gap-2">
   <!-- Edit Button -->

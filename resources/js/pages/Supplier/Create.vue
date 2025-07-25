@@ -12,6 +12,17 @@
         placeholder="Enter name"
       />
       <p v-if="form.errors.name" class="text-red-600 text-sm mt-1">{{ form.errors.name }}</p>
+
+      <!-- Contact Number -->
+      <label class="block text-sm mb-1">Contact Number</label>
+      <input
+        v-model="form.contact_number"
+        type="text"
+        class="w-full border px-3 py-2 rounded mb-1"
+        placeholder="Enter Contact Number"
+      />
+      <p v-if="form.errors.contact_number" class="text-red-600 text-sm mt-1">{{ form.errors.contact_number }}</p>
+
       <!-- Buttons -->
       <div class="flex justify-between mt-4 space-x-2">
         <button @click="emit('close')" class="btn">Cancel</button>
@@ -27,6 +38,8 @@ import { defineEmits, defineProps,ref } from 'vue'
 import { useToast } from 'vue-toastification'
 const page = usePage();
 const user = page.props.auth.user;
+const suppliers = page.props.supplier;
+
 function cleanUrl(...segments) {
   const result = [];
   for (let segment of segments) {
@@ -49,24 +62,29 @@ const props = defineProps({
 const emit = defineEmits(['close', 'update:newSupplier']);
 const form = useForm({
   name: '',
+  contact_number: '',
 });
 
 
 const handleCreate = () => {
-  router.post(url, form, {
-    onSuccess: (page) => {
-      const newSupplier = page.props.supplier ?? {
-        id: form.id,
-        name: form.name,
-        updated_at: new Date().toISOString()
-      }
+form.post(url, {
+  onSuccess: () => {
+    const newSupplier = {
+      id: suppliers[suppliers.length - 1].id, // optional if auto-generated
+      name: form.name,
+      contact_number: form.contact_number,
+      updated_at: new Date().toISOString(),
+    };
 
-      emit('update:newSupplier', newSupplier)
-      emit('close')
-    },
-    onError: () => {
-      console.error('Failed to create supplier')
-    }
-  })
+    console.log('Emitting new supplier:', newSupplier);
+    emit('update:newSupplier', newSupplier);
+    emit('close');
+  },
+  onError: () => {
+    toast.error('Please correct the highlighted fields.');
+  }
+});
+
 }
+
 </script>

@@ -11,8 +11,16 @@
         class="w-full border px-3 py-2 rounded mb-1"
         placeholder="Enter name"
       />
-      <p v-if="form.errors.name" class="text-red-600 text-sm mt-1">
-        {{ form.errors.name }}
+      <!-- Contact Number -->      
+      <label class="block text-sm mb-1">Contact Number</label>
+      <input
+        v-model="form.contact_number"
+        type="text"
+        class="w-full border px-3 py-2 rounded mb-1"
+        placeholder="Enter Contact Number"
+      />
+      <p v-if="form.errors.contact_number" class="text-red-600 text-sm mt-1">
+        {{ form.errors.contact_number }}
       </p>
 
 
@@ -44,6 +52,7 @@ const emit = defineEmits(['close', 'updated']); // Add 'updated'
 
 const form = useForm({
   id: null,
+  contact_number: null,
   name: '',
 });
 
@@ -51,6 +60,7 @@ watch(() => props.unit, (newUnit) => {
   if (newUnit) {
     form.id = newUnit.id;
     form.name = newUnit.name;
+    form.contact_number = newUnit.contact_number;
   }
 }, { immediate: true });
 
@@ -72,7 +82,7 @@ const url = cleanUrl(user.name, 'suppliers',form.id);
 const submit = () => {
 form.put(url+`/${form.id}`, {
   onSuccess: () => {
-  emit('updated', { id: form.id, name: form.name, updated_at: new Date().toISOString() });
+  emit('updated', { id: form.id, name: form.name, contact_number: form.contact_number, updated_at: new Date().toISOString() });
   emit('close');
   },
   onError: () => {

@@ -10,6 +10,7 @@ class Supplier extends Model
  use Auditable;
     protected $fillable = [
         'name',
+        'contact_number'
     ];
     public function products()
     {

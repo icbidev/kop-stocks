@@ -35,6 +35,7 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'contact_number' => 'required'
         ]);
     
         $supplier = Supplier::create($validated);
@@ -67,11 +68,14 @@ class SupplierController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'contact_number' => 'required'
         ]);
     
         $unit = Supplier::findOrFail($id);
+        
         $unit->update([
             'name' => $request->name,
+            'contact_number' => $request->contact_number
         ]);
     
         return redirect()->back()->with('newSupplier', $unit);
