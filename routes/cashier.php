@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\ApiController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LowStocksController;
 Route::middleware(['auth', 'restrict.access'])->group(function () {
@@ -35,6 +36,10 @@ Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])
 Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('cashier.logout');
 
+// Dashboard
+ Route::get('/dashboard', function () {
+            return Inertia::render('Dashboard');
+ })->middleware(['auth', 'verified'])->name('cashier.dashboard');
 
 // Inventory CRUD
 Route::resource('/inventory', InventoryController::class)->names([
@@ -57,6 +62,8 @@ Route::resource('/low-stocks', LowStocksController::class)->names([
     'update'  => 'cashier.low-stocks.update',
     'destroy' => 'cashier.low-stocks.destroy',
 ]);
-
+    //Api
+    Route::get('/api/category', [ApiController::class, 'apiCategory'])->middleware(['auth'])->name('cashier.apiCategory.get');
+    Route::get('/api/products', [ApiController::class, 'apiProduct'])->middleware(['auth'])->name('cashier.apiProduct.get');
 
 });

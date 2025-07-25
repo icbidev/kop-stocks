@@ -13,7 +13,6 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\SupplierController;
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Auth\ApiController;
@@ -67,16 +66,7 @@ Route::resource('/low-stocks', LowStocksController::class)->names([
     'destroy' => 'manager.low-stocks.destroy',
 ]);
 
-// Supplier CRUD
-Route::resource('/suppliers', SupplierController::class)->names([
-    'index'   => 'manager.suppliers.index',
-    'create'  => 'manager.suppliers.create',
-    'store'   => 'manager.suppliers.store',
-    'show'    => 'manager.suppliers.show',
-    'edit'    => 'manager.suppliers.edit',
-    'update'  => 'manager.suppliers.update',
-    'destroy' => 'manager.suppliers.destroy',
-]);
+
 
 // Categories CRUD
 Route::resource('categories', CategoryController::class)->names([
@@ -92,6 +82,7 @@ Route::resource('categories', CategoryController::class)->names([
     // Product CRUD
     Route::get('/products', [ProductController::class, 'index'])->name('manager.products');
     Route::get('/products/{id}/edit-product', [ProductController::class, 'edit'])->name('manager.products.edit');
+    Route::delete('/products/{product}/delete', [ProductController::class, 'destroy'])->name('manager.products.delete');
     Route::put('/products/{id}/edit-product', [ProductController::class, 'update'])->name('manager.products.update');
     Route::post('/products/create-product', [ProductController::class, 'storeProduct'])->name('manager.products.storeProduct');
     Route::post('/products/create-category', [ProductController::class, 'createCategory'])->name('manager.products.createCategory');

@@ -63,6 +63,10 @@ Route::resource('/roles', RolesController::class)->names([
     'destroy' => 'admin.roles.destroy',
 ]);
 
+Route::get('/roles/{id}/edit-route', [RolesController::class, 'editRoute'])
+    ->name('admin.roles.editRoute');
+Route::post('/roles/{id}/edit-route', [RolesController::class, 'updateRoute'])
+    ->name('admin.roles.updateRoute');
 
 // Users CRUD
 Route::resource('/users', UsersController::class)->names([
@@ -148,9 +152,10 @@ Route::resource('/delivery', DeliveryController::class)->names([
     Route::post('/delivery/create', [DeliveryController::class, 'store'])->name('admin.products.store');
     Route::put('/delivery/{id}', [DeliveryController::class, 'update'])->name('admin.products.update');
     Route::delete('/delivery/delete/{id}', [DeliveryController::class, 'destroy'])->name('admin.products.delete');
-     */
+*/
     Route::get('/products', [ProductController::class, 'index'])->name('admin.products');
     Route::get('/products/{id}/edit-product', [ProductController::class, 'edit'])->name('admin.products.edit');
+    Route::delete('/products/{product}/delete', [ProductController::class, 'destroy'])->name('admin.products.delete');
     Route::put('/products/{id}/edit-product', [ProductController::class, 'update'])->name('admin.products.update');
     Route::post('/products/create-product', [ProductController::class, 'storeProduct'])->name('admin.products.storeProduct');
     Route::post('/products/create-category', [ProductController::class, 'createCategory'])->name('admin.products.createCategory');

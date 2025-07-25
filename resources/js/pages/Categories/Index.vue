@@ -58,8 +58,8 @@ const submit = () => {
         // If the server sends back the new category
         // Replace `response.props.category` with actual response if needed
         const newCategory = response?.props?.category || form.data()
-        categories.value.push({
-          id: newCategory.id, // If not available, you may need to reload
+        categories.value.unshift({
+          id: categories.value[categories.length - 1], // If not available, you may need to reload
           name: form.name
         })
         closeModal()
@@ -92,7 +92,7 @@ const destroy = (id) => {
       <button @click="openModal()" class="bg-green-600 text-white px-4 py-2 rounded">+ Add</button>
     </div>
 
-    <table class="w-full table-auto border rounded shadow text-sm">
+    <table class="w-full table-auto border rounded shadow text-sm text-center">
       <thead class="bg-gray-100">
         <tr>
           <th class="border px-3 py-2 text-bold">Name</th>
@@ -101,7 +101,7 @@ const destroy = (id) => {
       </thead>
       <tbody>
         <tr v-for="category in categories" :key="category.id" class="bg-white even:bg-gray-50">
-          <td class="border px-3 py-2">{{ category.name }}</td>
+          <td class="border px-3 py-2 text-bold">{{ category.name }}</td>
           <td class="border px-3 py-2 space-x-2 flex justify-center">
             <button @click="openModal(category)" class="px-2 py-1 bg-blue-500 text-white rounded">Edit</button>
             <button @click="destroy(category.id)" class="px-2 py-1 bg-red-600 text-white rounded">Delete</button>

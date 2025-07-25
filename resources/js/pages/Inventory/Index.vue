@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import type { Product } from '@/types';
 const page = usePage();
 const products = ref<Product[]>(page.props.products);
-
+const isLoading = ref(false);
 const suppliers = ref<Supplier[]>(page.props.supplier);
 const categories = ref<Category[]>(page.props.category);
 const weight_units = ref<WeightUnit[]>(page.props.weight_units);
@@ -32,8 +32,7 @@ const toast = useToast()
       hour12: true
     });
   }
-const updateProduct = (product: Product, event?: Event) => {
-  event?.preventDefault();
+
 function cleanUrl(...segments) {
   const result = [];
   for (let segment of segments) {
@@ -47,30 +46,88 @@ function cleanUrl(...segments) {
   return '/' + result.join('/');
 }
 
-const url = cleanUrl(user.name, user.name, 'inventory', product.id);
+const updateAllProducts = async (categoryId: number) => {
+  isLoading.value = true;
 
-router.put(url+`/${product.id}`, {
-  id: product.id,
-  name: product.name,
-supplier_ids: product.supplier_ids, // must be an array
+  const categoryProducts = products.value.filter(p => p.category_id === categoryId);
+  const total = categoryProducts.length;
+  let current = 0;
+  let estimatedTimePerProduct = 500; // initial guess
+  let progressToastId = null;
 
-  quantity: product.quantity,
-  minimum_quantity: product.minimum_quantity,
-  standard_order: product.standard_order,
-  weight_unit_id: product.weight_unit_id,
-}, {
-  preserveScroll: true,
-  onSuccess: () => {
-    toast.success('Updated quantity for ' + product.name);
-    product.errors = {};
-  },
-  onError: (errors) => {
-    toast.error('Failed to update ' + product.name);
-    product.errors = errors;
-  }
+  try {
+    progressToastId = toast.info(`⏳ Updating products in category…`, { timeout: false });
+    const startTime = Date.now();
+
+    for (const product of categoryProducts) {
+      const url = cleanUrl(user.name, 'inventory', product.id, 'edit');
+      const productStartTime = Date.now();
+
+      await new Promise((resolve, reject) => {
+        router.put(
+          url,
+          {
+            id: product.id,
+            name: product.name,
+            supplier_ids: product.supplier_ids,
+            quantity: product.quantity,
+            minimum_quantity: product.minimum_quantity,
+            standard_order: product.standard_order,
+            weight_unit_id: product.weight_unit_id,
+          },
+          {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            onSuccess: () => {
+              product.errors = {};
+              resolve(null);
+            },
+            onError: (errors) => {
+              toast.error(`❌ Failed to update ${product.name}`);
+              product.errors = errors;
+              reject(errors);
+            },
+          }
+        );
+      });
+
+      current++;
+      const timeSpent = Date.now() - productStartTime;
+      estimatedTimePerProduct = (Date.now() - startTime) / current;
+      const timeLeft = Math.round(((total - current) * estimatedTimePerProduct) / 1000);
+
+      toast.update(progressToastId, {
+        content: `⏳ Updating ${current}/${total}… (${timeLeft}s left)`,
+        timeout: 5000,
+      });
+    }
+toast.update(progressToastId, {
+  id: progressToastId,
+  content: '✅ Category products updated!',
+  type: 'success',
+  timeout: 3000,           // <-- this re-enables auto-dismiss
+  hideProgressBar: false,  // optional, shows the progress bar
 });
+setTimeout(() => {
+  toast.dismiss(progressToastId);
+}, 3000);
 
+  } catch (e) {
+    console.error(e);
+    toast.update(progressToastId, {
+      content: '⚠️ Error during update.',
+      type: 'error',
+      timeout: 5000,
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
+
+
+
+
 products.value = products.value.map(product => ({
   ...product,
   supplier_ids: product.supplier_ids || [],  // ← must be unique per product
@@ -88,7 +145,15 @@ products.value = products.value.map(product => ({
 
 <div v-for="category in categories" :key="category.id" class="mb-8">
   <!-- Category Header -->
-  <h2 class="text-lg font-semibold text-blue-700 mb-2">{{ category.name }}</h2>
+  <div class="flex justify-between items-center m-4">
+    <h2 class="text-lg font-semibold text-blue-700">{{ category.name }}</h2>
+    <button
+      @click="updateAllProducts(category.id)"
+      class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700"
+    >
+      Update All {{ category.name }}
+    </button>
+  </div>
 
   <!-- Products Table -->
   <div class="w-full overflow-x-auto border rounded shadow">
@@ -98,8 +163,6 @@ products.value = products.value.map(product => ({
           <th class="p-2 border w-1/12">ID</th>
           <th class="p-2 border w-3/12">Name</th>
           <th class="p-2 border w-2/12">Current Balance</th>
-
-          <th class="p-2 border w-2/12">Action</th>
           <th class="p-2 border w-2/12">Last Updated</th>
         </tr>
       </thead>
@@ -118,28 +181,23 @@ products.value = products.value.map(product => ({
                                      </div>
           </td>
 
-                                        <td class="border px-2 py-1">
-          <div class="flex justify-center items-center">
-            <input
-              v-model="product.standard_order"
-              type="number"
-                                    :class="[
-    'w-full border rounded px-1 py-0.5 text-right',
-    product.errors?.standard_order ? 'border-red-500' : 'border-gray-300'
-  ]"
-            />
-              </div>
-          </td>
+<td class="border px-2 py-1">
+  <div class="flex items-center gap-2">
+    <input
+      v-model.number="product.quantity"
+      type="number"
+      step="1"
+      min="0"
+      :class="[
+        'border rounded px-1 py-0.5 text-right',
+        product.errors?.standard_order ? 'border-red-500' : 'border-gray-300'
+      ]"
+    />
+    <p class="text-sm text-gray-700 whitespace-nowrap">{{ product.weight_unit.name }}</p>
+  </div>
+</td>
 
-          <td class="border px-2 py-1 text-center">
-            <button
-            type="button"
-              @click="updateProduct(product, $event)"
-              class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-            >
-              Update
-            </button>
-          </td>
+
           <td class="border px-2 py-1">
 
             <p>{{ humanDate(product.updated_at) }}</p>
