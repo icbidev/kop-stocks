@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 class Route extends Model
 {
+    protected $table = 'routes';
+    
     protected $fillable = ['name', 'path'];
 
     public function users()

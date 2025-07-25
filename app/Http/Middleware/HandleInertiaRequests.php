@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 use Auth;
+use App\Models\Supplier;
 use DB;
 class HandleInertiaRequests extends Middleware
 {
@@ -43,6 +44,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'supplier' => Supplier::latest()->get(),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => Auth::user(),
@@ -54,6 +56,7 @@ class HandleInertiaRequests extends Middleware
 'auth' => fn () => [
     'user' => Auth::user()?->role,
     'authUser' => Auth::user(),
+    'supplier' => Supplier::latest()->get(),
     'allowedRoutes' => auth()->check()
         ? DB::table('role_route')
             ->join('routes', 'routes.id', '=', 'role_route.route_id')
