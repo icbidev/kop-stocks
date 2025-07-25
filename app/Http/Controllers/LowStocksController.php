@@ -16,8 +16,25 @@ class LowStocksController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $stockStatus = $request->query('stock-status'); // 'low', 'out', etc.
+        $supplier = $request->query('supplier');
+    
+        $products = Product::query();
+    
+        if ($stockStatus === 'low') {
+            $products->whereColumn('quantity', '<', 'minimum_quantity');
+        } elseif ($stockStatus === 'out') {
+            $products->where('quantity', '=', 0);
+        }
+    
+        if ($supplier) {
+            $products->whereHas('suppliers', function ($query) use ($supplier) {
+                $query->where('name', $supplier); // adjust if you're filtering by name or ID
+            });
+        }
+
         $products = Product::with(['movements', 'category', 'suppliers', 'weight_unit'])
             ->get()
             ->filter(function ($product) {
@@ -31,7 +48,10 @@ class LowStocksController extends Controller
     
         return Inertia::render('Low Stocks/Index', [
             'products' => $products,
-            'category' => Category::with(['products'])->get()
+            'stockStatus' => $stockStatus,
+            'selectedSupplier' => $supplier,
+            'category' => Category::with(['products'])->get(),
+            'supplier' => Supplier::pluck('name'), // or Supplier::all()
         ]);
     }
     
