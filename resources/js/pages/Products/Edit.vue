@@ -70,7 +70,7 @@ function openEditModal(selectedProduct) {
       productForm.weight_unit_id = selectedProduct.weight_unit_id;
     productForm.standard_order = selectedProduct.standard_order;
   productForm.minimum_quantity = selectedProduct.minimum_quantity;
-  productForm.supplier_ids = selectedProduct.supplier_ids || []; // Populate suppliers
+  productForm.supplier_ids = selectedProduct.supplier_ids; // Populate suppliers
   productForm.showSuppliers = false; // Reset showSuppliers for new modal open
   showEditModal.value = true;
 }
@@ -86,6 +86,7 @@ const selectedProduct = response.props.products.find(p => p.id === product.value
 if (selectedProduct) {
   productForm.name = selectedProduct.name;
   productForm.weight_unit_id = selectedProduct.weight_unit_id;
+  productForm.supplier_ids = selectedProduct.supplier_ids;
   productForm.category_id = selectedProduct.category_id;
   productForm.standard_order = selectedProduct.standard_order;
   productForm.minimum_quantity = selectedProduct.minimum_quantity;
@@ -134,9 +135,9 @@ if (selectedProduct) {
           <div  class="ml-4 mt-2 max-h-60 overflow-y-auto border p-2 rounded">
             <label v-for="supplier in suppliers" :key="supplier.id" class="block">
               <input
-                type="checkbox"
-                :value="supplier.id"
-                v-model="productForm.supplier_ids"
+              type="checkbox"
+              :value="supplier.id"
+              v-model="productForm.supplier_ids"
               />
               {{ supplier.name }}
             </label>
@@ -187,7 +188,7 @@ if (selectedProduct) {
         </div>
         <!-- Standard Order -->
         <div>
-          <label for="standard_order" class="block font-semibold mb-1">Standard Order</label>
+          <label for="standard_order" class="block font-semibold mb-1">Standard</label>
           <input
             v-model="productForm.standard_order"
             id="minimum_quantity"

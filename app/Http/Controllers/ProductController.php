@@ -29,6 +29,12 @@ class ProductController extends Controller
         ]);
     }
 
+    public function destroy(Product $product)
+    {
+        $product->delete();
+        return back();
+    }
+
     public function create()
     {
         return Inertia::render('Products/Create', [
@@ -54,14 +60,15 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer',
-            'supplier_ids' => 'array',
+            'supplier_ids' => 'required|array',
             'supplier_ids.*' => 'exists:suppliers,id',
             'minimum_quantity' => 'required|numeric',
-            'weight_unit_id' => 'required|string|exists:weight_units_id',
+            'standard_order' => 'required|numeric',
+            'weight_unit_id' => 'required|string|exists:weight_units,name',
             'category_id' => 'required|integer|exists:categories,id',
         ]);
         $name = $request->input('weight_unit_id'); // e.g., 'kg'
-        
+
         $weightUnit = WeightUnits::where('name', $name)->first();
 
 
@@ -73,10 +80,18 @@ class ProductController extends Controller
             'name' => $validated['name'],
             'category_id' => $validated['category_id'],
             'quantity' => $validated['quantity'],
+            'standard_order' => $validated['standard_order'],
             'weight_unit_id' => $weightUnit->id,
             'minimum_quantity' => $validated['minimum_quantity'],
         ]);
-    
+        $supplierIds = $validated['supplier_ids'] ?? [];
+        $product->suppliers()->sync($validated['supplier_ids'] ?? []);
+        $existingSupplierIds = $product->suppliers()->pluck('suppliers.id')->sort()->values()->toArray();
+        $newSupplierIds = collect($supplierIds)->sort()->values()->toArray();
+        
+        if ($existingSupplierIds !== $newSupplierIds) {
+            $product->syncSuppliersWithAudit($newSupplierIds);
+        }
 
         return back()->with('success', 'Product created successfully.');
     }
@@ -95,26 +110,30 @@ class ProductController extends Controller
     {
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'supplier_ids' => 'array',
-            'supplier_ids.*' => 'exists:suppliers,id',
+            'name' => 'required|string',
+            'minimum_quantity' => 'nullable|numeric',
             'standard_order' => 'nullable|numeric',
-            'minimum_quantity' => 'required|numeric',
-            'weight_unit_id' => 'required|integer|exists:weight_units,id',
-            'category_id' => 'required|integer|exists:categories,id',
+            'weight_unit_id' => 'required|exists:weight_units,id',
+            'supplier_ids' => 'nullable|array',
+            'supplier_ids.*' => 'exists:suppliers,id',
         ]);
     
-        $product = Product::findOrFail($id);
-        $supplierIds = $validated['supplier_ids'] ?? [];
+   
+            $product = Product::findOrFail($id);
+            $product->update($validated);
+            $supplierIds = $validated['supplier_ids'] ?? [];
+            $product->suppliers()->sync($validated['supplier_ids'] ?? []);
+            $existingSupplierIds = $product->suppliers()->pluck('suppliers.id')->sort()->values()->toArray();
+            $newSupplierIds = collect($supplierIds)->sort()->values()->toArray();
+            
+            if ($existingSupplierIds !== $newSupplierIds) {
+                $product->syncSuppliersWithAudit($newSupplierIds);
+            }
 
-        $existingSupplierIds = $product->suppliers()->pluck('suppliers.id')->sort()->values()->toArray();
-        $newSupplierIds = collect($supplierIds)->sort()->values()->toArray();
-        
-        if ($existingSupplierIds !== $newSupplierIds) {
-            $product->syncSuppliersWithAudit($newSupplierIds);
-        }
-        $product->update($validated);
-    
+
+
+
+
         return back()->with('success', 'Product updated successfully.');
     }
     
